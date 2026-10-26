@@ -1,0 +1,6 @@
+{
+  "_comment": "Copy to patient-service-context.json and set your own random salt, e.g. `openssl rand -hex 32`. Never share the real file: the salt protects the pseudonymous patient references.",
+  "anonymizationSalt": "REPLACE-WITH-A-LONG-RANDOM-VALUE",
+  "stablePatientNumbersConfirmed": true,
+  "basis": "Red lines in the annual service list are planned treatments; the internal patient number stays the same across years."
+}

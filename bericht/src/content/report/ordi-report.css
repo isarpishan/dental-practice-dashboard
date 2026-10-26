@@ -1,0 +1,19 @@
+.ordi-report > :not(:first-child) {margin-top:28px;}
+.ordi-report .report-hero {margin-bottom:32px;}
+.ordi-report > [data-component-id='analysis-summary'] {margin-top:8px;}
+.ordi-report .rich-narrative {color:var(--text);}
+.ordi-report .table-wrap {max-width:100%;}
+@media print {.ordi-report {padding:0;}}
+.ordi-report-fa {direction:rtl;text-align:start;line-height:1.9;}
+.ordi-report-fa .report-hero h1 {line-height:1.5;}
+.ordi-report-fa p,.ordi-report-fa li {line-height:1.95;}
+.ordi-report-fa .report-evidence-ltr {direction:ltr;}
+.ordi-report-fa .report-evidence-ltr > :not(:first-child) {margin-top:28px;}
+.ordi-report-fa .ordi-note {color:var(--muted);}
+
+.ordi-report-fa .rich-narrative {font-family:Tahoma,Arial,sans-serif;font-size:18px;}
+.ordi-report-fa h1,.ordi-report-fa h2 {font-family:Tahoma,Arial,sans-serif;}
+.ordi-report .ordi-pdf-export{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:0 0 28px;}
+.ordi-report .ordi-pdf-caption{font-size:13px;color:var(--text-muted);}
+.ordi-report .ordi-pdf-export p{flex-basis:100%;margin:0;font-size:13px;}
+@media print{.ordi-report .ordi-pdf-export{display:none;}}

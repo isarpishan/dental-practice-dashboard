@@ -1,0 +1,31 @@
+# Practice data — never commit
+*.pdf
+*.zip
+*.xlsx
+*.csv
+Eingang/
+Leistungsaufstellung/
+Sicherungen/
+.local-state/
+tmp/
+output/
+outputs/
+
+# Local settings with names, salts and confirmed bookings
+dashboard-tools/*.json
+!dashboard-tools/*.example.json
+
+# Generated snapshots and builds
+dashboard/src/data.json
+bericht/src/data.json
+dashboard/dist/
+bericht/dist/
+dashboard-tools/bin/
+
+# Bundled runtime and dependencies (not redistributable / too large)
+.local-runtime/
+node_modules/
+*.app/
+__pycache__/
+*.pyc
+.DS_Store

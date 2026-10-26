@@ -1,0 +1,12 @@
+{
+  "_comment": "Copy to bank-rules.json and replace the fictional names with your own payees. bank-rules.json is git-ignored.",
+  "ownerNames": ["mustermann"],
+  "rules": [
+    {"payee": ["dentallabor muster"], "bucket": "Ordination", "category": "Techniker / Labor", "cooperation": "Pflegeheim", "basis": "Labor der Pflegeheim-Kooperation."},
+    {"payee": ["dr. erika beispiel"], "bucket": "Ordination", "category": "Chirurgische Fremdleistungen"},
+    {"text": ["hausverwaltung beispiel"], "bucket": "Ordination", "category": "Ordinationsmiete"},
+    {"text": ["wohnbau muster"], "bucket": "Privat", "category": "Private Wohnungsmiete"},
+    {"any": ["steuerkanzlei muster"], "bucket": "Ordination", "category": "Steuerberatung / Buchhaltung", "confirmed": false},
+    {"any": ["leasing muster"], "bucket": "Finanzierung", "category": "Finanzierung / Leasing – Vertrag offen", "confirmed": false}
+  ]
+}

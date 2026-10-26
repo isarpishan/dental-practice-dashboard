@@ -1,0 +1,7 @@
+{
+  "_comment": "Optional. Copy to practice-context.json. Vacation weeks per month, shown next to the comparisons.",
+  "rows": [
+    {"year": 2026, "month": 7, "quarter": 3, "vacationWeeks": 1, "exactStart": null, "exactEnd": null},
+    {"year": 2026, "month": 8, "quarter": 3, "vacationWeeks": 2, "exactStart": null, "exactEnd": null}
+  ]
+}

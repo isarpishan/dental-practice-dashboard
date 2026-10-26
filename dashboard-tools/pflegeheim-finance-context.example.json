@@ -1,0 +1,12 @@
+{
+  "_comment": "Optional. Copy to pflegeheim-finance-context.json only if the practice treats patients of a care home that should be excluded from practice comparisons.",
+  "cooperation": "Pflegeheim",
+  "serviceYear": 2025,
+  "listFile": "Pflegeheim.pdf",
+  "partnerLabel": "Dentallabor",
+  "completeServiceYears": [2025],
+  "paymentServiceYears": {
+    "<bank transaction id>": 2025
+  },
+  "basis": "Pflegeheim.pdf is the confirmed patient list of the cooperation; PH Leistung.pdf is its complete statistics for the year."
+}

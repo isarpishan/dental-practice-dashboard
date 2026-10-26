@@ -1,0 +1,50 @@
+import React from 'react';
+import {PflegeheimValueSplit,PflegeheimFinance} from './PflegeheimFinance.jsx';
+import {DataComponent,DataTable,EvidenceChart,MetricCard,Section,Button} from '../../data-app-public.jsx';
+import {total,serviceRows,serviceGroups,nonTreatment} from './ordi-model.js';
+const euro=v=>v==null?'Nicht verfügbar':new Intl.NumberFormat('de-AT',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v);
+const num=v=>v==null?'Nicht verfügbar':new Intl.NumberFormat('de-AT').format(v);
+export function YearOverview({queries,year,years,patientRows,bizRows,codes,explain,shell,update,careYear}){
+ const isCare=careYear!=null&&year===careYear;
+ const a=patientRows.find(r=>r.year===year&&r.quarter===null),biz=bizRows.find(r=>r.year===year&&r.quarter==null);
+ const ph=(queries.pflegeheim_finance?.rows??[]).find(r=>r.kind==='Leistungsjahr'&&r.year===year),ownValue=isCare?(ph?.otherPracticeServiceValue??null):a?.amount;
+ const yearValueRows=[{Jahr:year,Bereich:isCare?'Ordination ohne Pflegeheim':'Ordination',Leistungswert:ownValue}];
+ const newPatientsCard=<MetricCard variant='card' id='year-new' queryId='ordination_biz_patients' title={isCare?'Neue Patienten der Ordination laut BIZ':'Neue Patienten laut BIZ (gesamt)'} value={num(biz?.newPatients)} displayRows={biz?[biz]:[]} sourceRows={biz?[biz]:[]} description='Neue Patienten aus dem eigenständigen BIZ-Bericht; geringe Abweichungen zur Patientenstatistik bleiben bestehen.'><Button variant='ghost' onClick={()=>explain(`Neue Patienten ${year}`,'Vom BIZ-Programm als neu gezählte Personen. Fehlt der entsprechende Bericht, bleibt der Wert leer. Neue Patienten und die Jahres-Patientenstatistik werden nicht zu einer Bindungsquote verrechnet.')}>Einfach erklärt</Button></MetricCard>;
+ const quarters=[1,2,3,4].map(q=>{const r=patientRows.find(r=>r.year===year&&r.quarter===q);return{Quartal:`Q${q}${r&&!r.complete?' (bisher)':''}`,Leistungswert:r?.amount??null,Personen:r?.patients??null,Status:r?(r.complete?'Vollständiges Quartal':'Noch unvollständig'):'Bericht fehlt',quarter:q};});
+ const sr=codes.filter(r=>r.year===year),groups=serviceGroups(serviceRows(codes,year,year)).filter(g=>!nonTreatment.has(g.group)).sort((a,b)=>b.amount-a.amount);
+ const annuals=[...years].sort().map(y=>{const r=patientRows.find(r=>r.year===y&&r.quarter===null);const phYear=(queries.pflegeheim_finance?.rows??[]).find(p=>p.kind==='Leistungsjahr'&&p.year===y);return{Jahr:y,Bereich:y===careYear?'Ordination ohne Pflegeheim':'Ordination',Leistungswert:y===careYear?(phYear?.otherPracticeServiceValue??null):(r?.amount??null),Personen:r?.patients??null,Status:r?.complete?'Jahresauswertung':`Bisher bis ${r?.coverageEnd??'unbekannt'}`};});
+ const chartOptions={getMarkActions:({row})=>[{label:'Quartal genauer vergleichen',onSelect:()=>shell.exploreDashboard?.('dashboard',{focus:{year:String(year),baseline:String(years.find(y=>y<year)??years.find(y=>y!==year)),period:`q${row.quarter}`}})}]};
+ const spec={type:'bar',x:'Quartal',y:'Leistungswert',currency:'EUR',showXAxisLabel:false,showYAxisLabel:false,startAtZero:true,showLegend:false,valueDecimals:0};
+ return <>
+  {!a?.complete&&<p className='ordi-notice'>Dieses Jahr ist im Bericht noch nicht vollständig. Die Jahreskarte zeigt nur den bisherigen Stand.</p>}
+  {a&&!patientRows.some(r=>r.year===year&&r.quarter)&&<p className='ordi-note'>Für {year} liegt eine Jahresauswertung vor, aber keine Quartalsaufteilung.</p>}
+  <Section id='year-key-figures' title={isCare?`Ordination ${year} ohne Pflegeheim`:`Das Jahr ${year} auf einen Blick`} columns={isCare?2:3} spacing='none'>
+   <MetricCard variant='card' id='year-value' queryId='ordination_periods' queryIds={['ordination_periods','pflegeheim_finance']} sourceRowsByQuery={{ordination_periods:a?[a]:[],pflegeheim_finance:ph?[ph]:[]}} title={isCare?'Leistungswert ohne Pflegeheim':'Leistungswert gesamt'} value={euro(ownValue)} displayRows={yearValueRows} description={isCare?'Jahresgesamtwert minus vollständige Pflegeheim-Leistungen. Gleiche Abgrenzung wie die Personenzahl daneben.':'Originalbetrag der Jahres-Patientenstatistik. Kein Gewinn und kein Nachweis von Zahlungseingängen.'}><Button variant='ghost' onClick={()=>explain(`Leistungswert ${year}`,isCare?`${euro(a?.reportedAmount)} Gesamtwert minus ${euro(ph?.serviceValue)} Pflegeheim = ${euro(ownValue)} für die Ordination ohne Pflegeheim. Erfasste Leistungen, kein Nachweis von Zahlungseingängen und kein Gewinn.`:'Summe der erfassten Leistungen in der Jahresauswertung. Unvollständige Jahre zeigen nur den bisherigen Stand. Das ist kein Gewinn.')}>Einfach erklärt</Button></MetricCard>
+   <MetricCard variant='card' id='year-people' queryId='ordination_periods' title={isCare?'Personen ohne Pflegeheim':'Personen der Ordination im Jahr'} value={num(a?.patients)} displayRows={a?[a]:[]} sourceRows={a?[a]:[]} description={isCare?`Personenzahl der Jahresauswertung abzüglich Pflegeheim ${year}; nicht die Summe der Quartale.`:'Personenzahl der Jahresauswertung; nicht die Summe der Quartale.'}><Button variant='ghost' onClick={()=>explain(`Personen ${year}`,(isCare?`Die Originalzahl des Jahresberichts wird um ${num(a?.pflegeheimPatients)} Pflegeheim-Patientenblöcke bereinigt. `:'')+'Eine Person kann in mehreren Quartalen vorkommen; deshalb werden Quartalszahlen nicht addiert.')}>Einfach erklärt</Button></MetricCard>
+   {!isCare&&newPatientsCard}
+  </Section>
+  {isCare&&<>
+   <p className='ordi-note'>Beide Karten zeigen ausschließlich die Ordination ohne Pflegeheim. Die Gesamtauswertung und die Pflegeheim-Kooperation stehen getrennt darunter.</p>
+   <PflegeheimValueSplit queries={queries} year={year} careYear={careYear}/>
+   <Section id='year-biz-total' title='Zusätzliche BIZ-Statistik der Ordination'>
+    {newPatientsCard}
+    <p className='ordi-note'>Ein bereinigter BIZ-Export für Neupatienten und Sitzungen {year} fehlt. Diese Werte bleiben deshalb unbekannt; die Pflegeheim-Personen werden nicht pauschal als Neupatienten abgezogen.</p>
+   </Section>
+   <PflegeheimFinance queries={queries} year={year} careYear={careYear} onPaymentSelect={r=>explain(`${r.merchant} · ${r.date}`,`${r.details}\n\n${r.cooperationBasis}\nOriginal: ${r.sources.map(s=>`${s.file}, Seite ${s.page}`).join(' / ')}`,[{label:'Bankbetrag',value:r.amount}],[{field:'label',label:'Buchung'},{field:'value',label:'Betrag',renderCell:v=>new Intl.NumberFormat('de-AT',{style:'currency',currency:'EUR'}).format(v)}])}/>
+  </>}
+  <Section id='year-quarters-heading' title={`So verteilt sich ${year} auf die Quartale`} columns={2}>
+   <EvidenceChart variant='card' id='year-quarter-value' queryId='ordination_periods' title='Leistungswert der Ordination je Quartal' rows={quarters} sourceRows={patientRows.filter(r=>r.year===year&&r.quarter)} spec={spec} height={270} chartOptions={chartOptions}/>
+   <EvidenceChart variant='card' id='year-quarter-people' queryId='ordination_periods' title='Personen der Ordination je Quartal' rows={quarters} sourceRows={patientRows.filter(r=>r.year===year&&r.quarter)} spec={{...spec,y:'Personen',currency:undefined}} height={270} chartOptions={chartOptions}/>
+  </Section>
+  <p className='ordi-note'>{isCare?'Die Quartalsansicht zeigt Leistungswerte und Personen jeweils ohne Pflegeheim. Die Abzüge stammen aus den datierten Zeilen der vollständigen Patientenliste. ':''}„Bisher“ bedeutet: Quartal noch nicht abgeschlossen. Fehlende Quartale bleiben leer. Personen können in mehreren Quartalen vorkommen.</p>
+  <Section id='year-quarter-details-heading' title='Quartalszahlen nachsehen'>
+   <DataComponent variant='card' id='year-quarter-table' queryId='ordination_periods' title={`Quartale ${year}`} kind='table' displayRows={quarters} sourceRows={patientRows.filter(r=>r.year===year&&r.quarter)}><DataTable rows={quarters} searchable={false} label={`Quartale ${year}`} columns={[{field:'Quartal',label:'Quartal'},{field:'Leistungswert',label:'Leistungswert Ordination',renderCell:euro},{field:'Personen',label:'Personen Ordination',renderCell:num},{field:'Status',label:'Stand'}]} onRowSelect={r=>explain(`${r.Quartal} ${year}`,`${r.Status}. Leistungswert: ${euro(r.Leistungswert)}. Behandelte Personen: ${num(r.Personen)}.${isCare?' Beide Zahlen ohne Pflegeheim.':''}`)}/></DataComponent>
+  </Section>
+  <Section id='year-services-heading' title={`Welche Leistungen prägen ${year}?`}>
+   <EvidenceChart variant='card' id='year-service-mix' queryId='ordination_service_codes' title='Leistungsbereiche im ausgewählten Jahr' rows={groups.map(g=>({Bereich:g.group,Leistungswert:g.amount}))} sourceRows={sr} spec={{...spec,type:'horizontalBar',x:'Bereich'}} height={420} chartOptions={{getMarkActions:({row})=>[{label:'Einzelne Leistungen ansehen',onSelect:()=>shell.exploreDashboard?.('services',{focus:{year:String(year),group:row.Bereich}})}]}}><p className='ordi-note'>Therapeutische Bereiche nach Jahres-Leistungsbericht. Dessen Summe kann geringfügig von der Patientenstatistik abweichen. <a href='/bericht/' target='_blank' rel='noreferrer'>Analysebericht öffnen</a></p></EvidenceChart>
+  </Section>
+  <Section id='year-all-heading' title='Alle Jahre zum Auswählen'>
+   <DataComponent variant='card' id='year-all-table' queryId='ordination_periods' queryIds={['ordination_periods','pflegeheim_finance']} sourceRowsByQuery={{ordination_periods:patientRows.filter(r=>r.quarter===null),pflegeheim_finance:(queries.pflegeheim_finance?.rows??[]).filter(r=>r.kind==='Leistungsjahr')}} title='Jahresauswertungen der Ordination' kind='table' displayRows={annuals}><DataTable rows={annuals} searchable={false} label='Alle Jahre' rowKey='Jahr' selectedRowKey={year} onRowSelect={r=>{update('year',r.Jahr);window.scrollTo({top:0,behavior:'smooth'});}} rowActionLabel={r=>`${r.Jahr} öffnen`} columns={[{field:'Jahr',label:'Jahr',renderCell:v=>String(v)},{field:'Bereich',label:'Abgrenzung'},{field:'Leistungswert',label:'Leistungswert',renderCell:euro},{field:'Personen',label:'Personen',renderCell:num},{field:'Status',label:'Stand'}]}/></DataComponent>
+  </Section>
+ </>;
+}
